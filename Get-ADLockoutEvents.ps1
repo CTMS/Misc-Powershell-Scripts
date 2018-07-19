@@ -15,7 +15,7 @@ if ($TimeFrame -lt 1) {
     exit
 }
 
-if (!(Test-Path -Path (Split-Path -Path $ExportPath -Parent))) {
+if (($ExportPath) -and !(Test-Path -Path (Split-Path -Path $ExportPath -Parent))) {
     New-Item (Split-Path -Path $ExportPath -Parent) -ItemType Directory
 }
 
