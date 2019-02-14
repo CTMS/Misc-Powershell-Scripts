@@ -45,7 +45,7 @@ function Get-DisabledUsers () {
 
     Process {
         try {
-            $script:DisabledUsers += Get-ADUser -Filter {Enabled -eq $false} | Select-Object @{n = 'Username' ; e = {$_.samaccountname}}, @{n = 'OU' ; e = {($_.distinguishedname -split ",", 2)[1]}} | Sort-Object -prop OU
+            $script:DisabledUsers += Get-ADUser -Filter {Enabled -eq $false} | Select-Object name, @{n = 'Username' ; e = {$_.samaccountname}}, @{n = 'OU' ; e = {($_.distinguishedname -split ",", 2)[1]}} | Sort-Object -prop OU
         }
         catch {
             Write-Host -BackgroundColor Red "Error: $($_.Exception)"
