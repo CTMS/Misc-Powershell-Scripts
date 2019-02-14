@@ -118,6 +118,45 @@ function Disable-InactiveUsers($inactivePeriod = 90) {
     }
 }
 
+function Get-InactiveADComputers($inactivePeriod = 90) {
+    Begin {
+        $InactiveDate = (Get-Date).Adddays( - ($inactivePeriod))
+        $List = @()
+        $LatestLogOn = @()
+        $script:InactivePCs = @()
+        Write-Host -ForegroundColor Green "Searching across all Replica Servers for Inactive Domain Computers...`n"
+    }
+    Process {
+        (Get-ADDomain).ReplicaDirectoryServers | Sort-Object | % {
+            $DC = $_
+            Write-Host -ForegroundColor Green "Reading $DC"
+            $List += Get-ADComputer -Server $_ -Filter {OperatingSystem -notlike "*server*" -and Enabled -eq $true} -Properties lastlogon | Select-Object name, LastLogon, @{n = 'DC'; e = {$DC}}
+        }
+        Write-Host -ForegroundColor Green "`nSorting for most recent lastlogon"
+        $List | Group-Object -Property 'name' | % {
+            $LatestLogOn += ($_.Group | Sort-Object -prop lastlogon -Descending)[0]
+        }
+        $script:InactivePCs += $LatestLogOn | ? {$_.lastlogon -lt $InactiveDate.ToFileTimeUtc()} | Sort-object -prop Lastlogon -Descending | Select-Object 'name', 'DC', @{n = 'LastLogonDate'; e = {[datetime]::FromFileTime($_.lastlogon)}}, lastlogon
+    }
+    End {
+        $List.Clear()
+        $LatestLogOn.Clear()
+        $script:RanInactivePCs = $true
+    }
+}
+
+function Disable-InactiveADComputers($inactivePeriod = 90) {
+    Begin {
+
+    }
+    Process {
+
+    }
+    End {
+
+    }
+}
+
 ##############################################
 #      Support functions for Program         #
 ##############################################
@@ -134,18 +173,15 @@ Function Export-Report {
 
     Begin {
         Write-Host "Creating requested Reports in specified path [$ReportFilePath]..."
-        if ($script:RanActive -and $script:RanDisabled) {
-            $ReportType = "All"
+        $ReportType = @()
+        if ($script:RanActive) {
+            $ReportType += "ActiveUsers"
         }
-        elseif ($script:RanActive) {
-            $ReportType = "ActiveUsers"
+        if ($script:RanDisabled) {
+            $ReportType += "DisabledUsers"
         }
-        elseif ($script:RanDisabled) {
-            $ReportType = "DisabledUsers"
-        }
-        else {
-            Write-Host -BackgroundColor Red "Unexpected error. Exiting"
-            Break
+        if ($script:RanInactivePCs) {
+            $ReportType += "InactivePCs"
         }
     }
 
@@ -161,6 +197,7 @@ Function Export-Report {
             If ($ReportFilePath -notlike '*.csv' -and $ReportType -like "All") {
                 $ReportFilePathD = Join-Path -Path $ReportFilePath -ChildPath "\DisabledUsers-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
                 $ReportFilePathA = Join-Path -Path $ReportFilePath -ChildPath "\ActiveUsers-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
+                $ReportFilePathA = Join-Path -Path $ReportFilePath -ChildPath "\InactivePCs-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
             }
 
             switch ($ReportType) {
@@ -202,7 +239,9 @@ function Show-Menu {
     Write-Host -ForegroundColor Green "`t[2] Find Disabled Users"
     Write-Host -ForegroundColor Green "`t[3] Disable Inactive Users"
     Write-Host -ForegroundColor Green "`t[4] Move Disabled Users"
-    Write-Host -ForegroundColor Green "`t[5] Export Reports"
+    Write-Host -ForegroundColor Green "`t[5] Find Inactive PCs"
+    Write-Host -ForegroundColor Green "`t[6] Disable Inactive PCs"
+    Write-Host -ForegroundColor Green "`t[9] Export Reports"
     Write-Host -ForegroundColor Red "`t[0] Exit"
 }
 
@@ -284,6 +323,26 @@ do {
             Write-Host -ForegroundColor Red "This feature is not fully implemented yet."
         }
         "5" {
+            Write-Host -ForegroundColor Red "This feature is not fully implemented yet."
+            try {
+                Write-Host -ForegroundColor Green "Starting Get-InactiveADComputers Script..."
+                Get-InactiveADComputers
+                $output = Read-Host -Prompt "`nWould you like to write results to console? [y/N]"
+                if ($output -eq "y") {
+                    $script:InactivePCs | Select-Object 'Name', 'DC', 'LastLogonDate'
+                }
+                else {
+                    Write-Host -ForegroundColor Green "Returning to main menu."
+                }
+            }
+            catch {
+                Write-Host -BackgroundColor Red "Unknown Error occured with Get-ActiveUsers script."
+            }
+        }
+        "6" {
+            Write-Host -ForegroundColor Red "This feature is not fully implemented yet."
+        }
+        "9" {
             Write-Host -ForegroundColor Green "Exporting Results to CSV."
             if ($script:RanActive -or $script:RanDisabled) {
                 Export-Report
