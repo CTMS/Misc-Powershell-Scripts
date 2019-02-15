@@ -190,6 +190,10 @@ Function Export-Report {
             if (!(Test-Path $ReportFilePath)) {
                 New-Item -path $ReportFilePath -Type Directory
             }
+
+            if ($ReportType -eq $null) {
+                Write-Host -ForegroundColor Red "No Reports ran."
+            }
             #Check file path to ensure correct
             foreach ($Report in $ReportType) {
                 $ReportFilePath = Join-Path -Path $ReportFilePath -ChildPath "\$Report-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
@@ -253,11 +257,12 @@ Function Export-Report {
 }
 
 function Show-Menu {
+    cls
     Write-Host -ForegroundColor Green "`t[1] Find Active Users"
     Write-Host -ForegroundColor Green "`t[2] Find Disabled Users"
-    Write-Host -ForegroundColor Green "`t[3] Disable Inactive Users"
+    Write-Host -ForegroundColor Green "`t[3] Find Inactive PCs"
     Write-Host -ForegroundColor Green "`t[4] Move Disabled Users"
-    Write-Host -ForegroundColor Green "`t[5] Find Inactive PCs"
+    Write-Host -ForegroundColor Green "`t[5] Disable Inactive Users"
     Write-Host -ForegroundColor Green "`t[6] Disable Inactive PCs"
     Write-Host -ForegroundColor Green "`t[9] Export Reports"
     Write-Host -ForegroundColor Red "`t[0] Exit"
@@ -271,7 +276,7 @@ Write-Host -ForegroundColor Yellow "Welcome to Active Directory Cleanup!`nBrough
 Write-Host -ForegroundColor Yellow "Please select an option:`n"
 do {
     Show-Menu
-    $Selection = Read-Host -Prompt "Enter Selection:"
+    $Selection = Read-Host -Prompt "Enter Selection"
     cls
 
     switch ($Selection) {
@@ -299,7 +304,7 @@ do {
             try {
                 Write-Host -ForegroundColor Green "Starting Get-DisabledUsers Script..."
                 Get-DisabledUsers
-                $output = Read-Host -Prompt "`nWould you like to write results to console? [y/n]"
+                $output = Read-Host -Prompt "`nWould you like to write results to console? [y/N]"
                 if ($output -eq "y") {
                     $script:DisabledUsers
                 }
@@ -312,35 +317,6 @@ do {
             }
         }
         "3" {
-            if ($script:RanDisabled) {
-                Write-Host -BackgroundColor Red "Are you sure you want to do this? This will bulk disable users."
-                $confirmOption = Read-Host -Prompt "Type DISABLE USERS to continue"
-                if ($confirmOption -ceq "DISABLE USERS") {
-                    Write-Host -ForegroundColor Green "Disabling inactive users...`n"
-                    do {
-                        try {
-                            [ValidatePattern("^[0-9]+$|0")]$Days = Read-Host -Prompt "Please enter number of days for inactivity (Ex 90)"
-                            $ValidateCheck = $true
-                        }
-                        catch {
-                            Write-Host -BackgroundColor Red "Please enter a valid number."
-                            $ValidateCheck = $false
-                        }
-                    } until ($ValidateCheck)
-                    Disable-InactiveUsers -inactivePeriod $Days
-                }
-                else {
-                    Write-Host -ForegroundColor Red "Confirmation prompt failed. Returning to main menu."
-                }
-            }
-            else {
-                Write-Host -ForegroundColor Red "Please run option 2 first."
-            }
-        }
-        "4" {
-            Write-Host -ForegroundColor Red "This feature is not fully implemented yet."
-        }
-        "5" {
             Write-Host -ForegroundColor Red "This feature is not fully implemented yet."
             try {
                 Write-Host -ForegroundColor Green "Starting Get-InactiveADComputers Script..."
@@ -356,6 +332,36 @@ do {
             catch {
                 Write-Host -BackgroundColor Red "Unknown Error occured with Get-ActiveUsers script."
             }
+        }
+        "4" {
+            Write-Host -ForegroundColor Red "This feature is not fully implemented yet."
+        }
+        "5" {
+            Write-Host -ForegroundColor Red "This feature is not fully implemented yet."
+            # if ($script:RanDisabled) {
+            #     Write-Host -BackgroundColor Red "Are you sure you want to do this? This will bulk disable users."
+            #     $confirmOption = Read-Host -Prompt "Type DISABLE USERS to continue"
+            #     if ($confirmOption -ceq "DISABLE USERS") {
+            #         Write-Host -ForegroundColor Green "Disabling inactive users...`n"
+            #         do {
+            #             try {
+            #                 [ValidatePattern("^[0-9]+$|0")]$Days = Read-Host -Prompt "Please enter number of days for inactivity (Ex 90)"
+            #                 $ValidateCheck = $true
+            #             }
+            #             catch {
+            #                 Write-Host -BackgroundColor Red "Please enter a valid number."
+            #                 $ValidateCheck = $false
+            #             }
+            #         } until ($ValidateCheck)
+            #         Disable-InactiveUsers -inactivePeriod $Days
+            #     }
+            #     else {
+            #         Write-Host -ForegroundColor Red "Confirmation prompt failed. Returning to main menu."
+            #     }
+            # }
+            # else {
+            #     Write-Host -ForegroundColor Red "Please run option 2 first."
+            # }
         }
         "6" {
             Write-Host -ForegroundColor Red "This feature is not fully implemented yet."
