@@ -191,35 +191,53 @@ Function Export-Report {
                 New-Item -path $ReportFilePath -Type Directory
             }
             #Check file path to ensure correct
-            If ($ReportFilePath -notlike '*.csv' -and $ReportType -notlike "All") {
-                $ReportFilePath = Join-Path -Path $ReportFilePath -ChildPath "\$ReportType-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
+            foreach ($Report in $ReportType) {
+                $ReportFilePath = Join-Path -Path $ReportFilePath -ChildPath "\$Report-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
+                Write-Host -ForegroundColor Green "Exporting $Report report to $ReportFilePath"
+                switch ($Report) {
+                    "ActiveUsers" {
+                        $script:ActiveUsers | Export-Csv $ReportFilePath -NoTypeInformation -Force
+                    }
+                    "DisabledUsers" {
+                        $script:DisabledUsers | Export-Csv $ReportFilePath -NoTypeInformation -Force
+                    }
+                    "InactivePCs" {
+                        $script:InactivePCs | Export-Csv $ReportFilePath -NoTypeInformation -Force
+                    }
+                    Default {
+                        Write-Host -ForegroundColor Red "No Reports ran."
+                    }
+                }
             }
-            If ($ReportFilePath -notlike '*.csv' -and $ReportType -like "All") {
-                $ReportFilePathD = Join-Path -Path $ReportFilePath -ChildPath "\DisabledUsers-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
-                $ReportFilePathA = Join-Path -Path $ReportFilePath -ChildPath "\ActiveUsers-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
-                $ReportFilePathA = Join-Path -Path $ReportFilePath -ChildPath "\InactivePCs-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
-            }
+            # If ($ReportFilePath -notlike '*.csv' -and $ReportType -notlike "All") {
+            #     $ReportFilePath = Join-Path -Path $ReportFilePath -ChildPath "\$ReportType-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
+            # }
+            # If ($ReportFilePath -notlike '*.csv' -and $ReportType -like "All") {
+            #     $ReportFilePathD = Join-Path -Path $ReportFilePath -ChildPath "\DisabledUsers-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
+            #     $ReportFilePathA = Join-Path -Path $ReportFilePath -ChildPath "\ActiveUsers-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
+            #     $ReportFilePathA = Join-Path -Path $ReportFilePath -ChildPath "\InactivePCs-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
+            # }
 
-            switch ($ReportType) {
-                "All" {
-                    Write-Host -ForegroundColor Green "Exporting Disabled Users report to $ReportFilePathD"
-                    $script:DisabledUsers | Export-Csv $ReportFilePathD -NoTypeInformation -Force
-                    Write-Host -ForegroundColor Green "Exporting Active Users report to $ReportFilePathA"
-                    $script:ActiveUsers | Export-Csv $ReportFilePathA -NoTypeInformation -Force
-                }
-                "ActiveUsers" {
-                    Write-Host -ForegroundColor Green "Exporting Active Users report to $ReportFilePath"
-                    $script:ActiveUsers | Export-Csv $ReportFilePath -NoTypeInformation -Force
-                }
-                "DisabledUsers" {
-                    Write-Host -ForegroundColor Green "Exporting Disabled Users report to $ReportFilePath"
-                    $script:DisabledUsers | Export-Csv $ReportFilePath -NoTypeInformation -Force
-                }
-                Default {
-                    Write-Host -BackgroundColor Red "Error with report type selection. Exiting."
-                    break
-                }
-            }
+            # switch ($ReportType) {
+            #     "All" {
+            #         Write-Host -ForegroundColor Green "Exporting Disabled Users report to $ReportFilePathD"
+            #         $script:DisabledUsers | Export-Csv $ReportFilePathD -NoTypeInformation -Force
+            #         Write-Host -ForegroundColor Green "Exporting Active Users report to $ReportFilePathA"
+            #         $script:ActiveUsers | Export-Csv $ReportFilePathA -NoTypeInformation -Force
+            #     }
+            #     "ActiveUsers" {
+            #         Write-Host -ForegroundColor Green "Exporting Active Users report to $ReportFilePath"
+            #         $script:ActiveUsers | Export-Csv $ReportFilePath -NoTypeInformation -Force
+            #     }
+            #     "DisabledUsers" {
+            #         Write-Host -ForegroundColor Green "Exporting Disabled Users report to $ReportFilePath"
+            #         $script:DisabledUsers | Export-Csv $ReportFilePath -NoTypeInformation -Force
+            #     }
+            #     Default {
+            #         Write-Host -BackgroundColor Red "Error with report type selection. Exiting."
+            #         break
+            #     }
+            # }
         }
         Catch {
             Write-Host -BackgroundColor Red "Error: $($_.Exception)"
