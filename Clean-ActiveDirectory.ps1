@@ -257,7 +257,6 @@ Function Export-Report {
 }
 
 function Show-Menu {
-    cls
     Write-Host -ForegroundColor Green "`t[1] Find Active Users"
     Write-Host -ForegroundColor Green "`t[2] Find Disabled Users"
     Write-Host -ForegroundColor Green "`t[3] Find Inactive PCs"
@@ -271,13 +270,14 @@ function Show-Menu {
 ###################################
 #         Main Function           #
 ###################################
+Clear-Host
 Write-Host -ForegroundColor Yellow "Initializing Scripts...`n"
 Write-Host -ForegroundColor Yellow "Welcome to Active Directory Cleanup!`nBrought to you by the awesome Maria with CTMS :)`n"
 Write-Host -ForegroundColor Yellow "Please select an option:`n"
 do {
     Show-Menu
     $Selection = Read-Host -Prompt "Enter Selection"
-    cls
+    Clear-Host
 
     switch ($Selection) {
         "0" {
