@@ -362,12 +362,7 @@ do {
         }
         "9" {
             Write-Host -ForegroundColor Green "Exporting Results to CSV."
-            if ($script:RanActive -or $script:RanDisabled) {
-                Export-Report
-            }
-            else {
-                Write-Host -ForegroundColor Red "Please run either Option 1 or Option 2 before exporting reports."
-            }
+            Export-Report
         }
         Default {
             Write-Host -ForegroundColor Red "Please make a valid Selection."
