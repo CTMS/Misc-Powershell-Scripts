@@ -167,12 +167,12 @@ Function Export-Report {
         # Report Path
         [Parameter(Mandatory = $false)]
         [String]
-        $ReportFilePath = "C:\Logs\Clean-ActiveDirectory"
+        $ReportFilePathRoot = "C:\Logs\Clean-ActiveDirectory"
     )
 
 
     Begin {
-        Write-Host "Creating requested Reports in specified path [$ReportFilePath]..."
+        Write-Host "Creating requested Reports in specified path [$ReportFilePathRoot]..."
         $ReportType = @()
         if ($script:RanActive) {
             $ReportType += "ActiveUsers"
@@ -187,8 +187,8 @@ Function Export-Report {
 
     Process {
         Try {
-            if (!(Test-Path $ReportFilePath)) {
-                New-Item -path $ReportFilePath -Type Directory
+            if (!(Test-Path $ReportFilePathRoot)) {
+                New-Item -path $ReportFilePathRoot -Type Directory
             }
 
             if ($ReportType -eq $null) {
@@ -196,7 +196,7 @@ Function Export-Report {
             }
             #Check file path to ensure correct
             foreach ($Report in $ReportType) {
-                $ReportFilePath = Join-Path -Path $ReportFilePath -ChildPath "\$Report-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
+                $ReportFilePath = Join-Path -Path $ReportFilePathRoot -ChildPath "\$Report-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
                 Write-Host -ForegroundColor Green "Exporting $Report report to $ReportFilePath"
                 switch ($Report) {
                     "ActiveUsers" {
