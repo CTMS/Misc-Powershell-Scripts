@@ -79,7 +79,13 @@ function Move-DisabledUsers {
         try {
             if ($DisabledOU = "") {
                 Write-Host -ForegroundColor Red "No DisabledOU specified. Searching for Terminated or Disabled Users OU..."
-                $DisabledOU = Get-ADOrganizationalUnit -filter {Name -like "Disabled Users"}
+                $DisabledOU = Get-ADOrganizationalUnit -filter {Name -like "Disabled Users" -or Name -like "Terminated Users"}
+            } else {
+                $DisabledOU = Get-ADOrganizationalUnit -Filter {Name -eq $DisabledOU}
+            }
+            if ($DisabledOU = "") {
+                Write-Host -ForegroundColor Red "Could not find a disabled or temrinated users OU. Please create one or specify an OU."
+                return
             }
         }
         catch {
@@ -213,35 +219,6 @@ Function Export-Report {
                     }
                 }
             }
-            # If ($ReportFilePath -notlike '*.csv' -and $ReportType -notlike "All") {
-            #     $ReportFilePath = Join-Path -Path $ReportFilePath -ChildPath "\$ReportType-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
-            # }
-            # If ($ReportFilePath -notlike '*.csv' -and $ReportType -like "All") {
-            #     $ReportFilePathD = Join-Path -Path $ReportFilePath -ChildPath "\DisabledUsers-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
-            #     $ReportFilePathA = Join-Path -Path $ReportFilePath -ChildPath "\ActiveUsers-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
-            #     $ReportFilePathA = Join-Path -Path $ReportFilePath -ChildPath "\InactivePCs-$([DateTime]::Now.ToString("yyyyMMdd-HHmmss")).csv"
-            # }
-
-            # switch ($ReportType) {
-            #     "All" {
-            #         Write-Host -ForegroundColor Green "Exporting Disabled Users report to $ReportFilePathD"
-            #         $script:DisabledUsers | Export-Csv $ReportFilePathD -NoTypeInformation -Force
-            #         Write-Host -ForegroundColor Green "Exporting Active Users report to $ReportFilePathA"
-            #         $script:ActiveUsers | Export-Csv $ReportFilePathA -NoTypeInformation -Force
-            #     }
-            #     "ActiveUsers" {
-            #         Write-Host -ForegroundColor Green "Exporting Active Users report to $ReportFilePath"
-            #         $script:ActiveUsers | Export-Csv $ReportFilePath -NoTypeInformation -Force
-            #     }
-            #     "DisabledUsers" {
-            #         Write-Host -ForegroundColor Green "Exporting Disabled Users report to $ReportFilePath"
-            #         $script:DisabledUsers | Export-Csv $ReportFilePath -NoTypeInformation -Force
-            #     }
-            #     Default {
-            #         Write-Host -BackgroundColor Red "Error with report type selection. Exiting."
-            #         break
-            #     }
-            # }
         }
         Catch {
             Write-Host -BackgroundColor Red "Error: $($_.Exception)"
